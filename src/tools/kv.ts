@@ -126,6 +126,7 @@ export async function handleGetKVs() {
   log('Executing get_kvs')
   const url = `https://api.cloudflare.com/client/v4/accounts/${config.accountId}/storage/kv/namespaces`
 
+  console.log({ url })
   const response = await fetch(url, {
     headers: { Authorization: `Bearer ${config.apiToken}` },
   })

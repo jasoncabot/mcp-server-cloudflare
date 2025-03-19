@@ -8,3 +8,4 @@ dist/
 *.backup
 /tmp
 .wrangler
+.dev.vars

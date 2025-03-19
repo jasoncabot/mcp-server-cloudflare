@@ -19,7 +19,7 @@
     "mcp-server-cloudflare": "dist/cli.js"
   },
   "scripts": {
-    "build": "tsup src/cli.ts src/index.ts --dts --format esm --external xdg-app-paths --external which",
+    "build": "tsup src/cli.ts src/index.ts --dts --format esm --external xdg-app-paths --external which --external 'cloudflare:workers'",
     "prepublishOnly": "shx chmod +x dist/cli.js",
     "check": "tsc --noEmit",
     "build:watch": "pnpm build --watch",

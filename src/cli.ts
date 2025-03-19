@@ -45,7 +45,7 @@ if (cmd === 'init') {
     }
 
     // Set the API token from the authenticated state
-    config.apiToken = LocalState.accessToken?.value
+    config.apiToken = LocalState.accessToken?.value!
   }
 
   log(

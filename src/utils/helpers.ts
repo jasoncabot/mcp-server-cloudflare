@@ -1,4 +1,5 @@
 // Debug logging
+import { env } from 'cloudflare:workers'
 
 export function isWorkers() {
   // @ts-ignore
@@ -16,8 +17,16 @@ export function log(...args: any[]) {
 }
 
 // Config
-export const config = isWorkers()
-  ? {}
+// @ts-ignore
+export const config: Record<string, string> = isWorkers()
+  ? {
+      get accountId() {
+        return env.USER_ACCOUNT_ID
+      },
+      get apiToken() {
+        return env.USER_API_TOKEN
+      },
+    }
   : {
       accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
       apiToken: process.env.CLOUDFLARE_API_TOKEN,
