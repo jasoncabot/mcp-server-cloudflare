@@ -1,6 +1,5 @@
 // Add D1 tool definitions
 import { config, log } from '../utils/helpers'
-import { fetch } from 'undici'
 import { Tool } from '@modelcontextprotocol/sdk/types.js'
 import { ToolHandlers } from '../utils/types'
 

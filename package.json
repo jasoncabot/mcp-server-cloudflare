@@ -37,7 +37,6 @@
     "xdg-app-paths": "^8.3.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250317.0",
     "@types/node": "^22.10.0",
     "@types/which": "^3.0.4",
     "@vitest/coverage-v8": "^3.0.8",

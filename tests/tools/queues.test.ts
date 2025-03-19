@@ -8,7 +8,6 @@ vi.mock('undici', () => ({
 }))
 
 // Import the mocked fetch
-import { fetch } from 'undici'
 
 // Import the QUEUES_HANDLERS from the module
 import { QUEUES_HANDLERS } from '../../src/tools/queues'
