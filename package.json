@@ -25,6 +25,7 @@
     "build:watch": "pnpm build --watch",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "deploy": "wrangler deploy",
     "test:watch": "vitest"
   },
   "dependencies": {

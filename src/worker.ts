@@ -23,7 +23,7 @@ export class McpServerCloudflare extends DurableMCP<{}> {
     this.account_id = accounts[0].id
   }
 
-  // HACK, override `.env` within all the tool calls
+  // HACK, override `import { env }` within all the tool calls
   async onMessage(request: Request) {
     return withEnv({ USER_API_TOKEN: this.props.tokens.access_token, USER_ACCOUNT_ID: this.account_id }, async () => {
       return await super.onMessage(request)
@@ -34,9 +34,9 @@ export class McpServerCloudflare extends DurableMCP<{}> {
 const app = new Hono<{ Bindings: Env & { OAUTH_PROVIDER: OAuthHelpers } }>()
 
 // TODO: this worker can host an entire public website if we want
-// app.get('/', async (c) => {
-//   return c.json({ hello: 'world' })
-// })
+app.get('/', async (c) => {
+  return c.text('Hello, world!')
+})
 
 app.get('/authorize', async (c) => {
   const oauthReqInfo = await c.env.OAUTH_PROVIDER.parseAuthRequest(c.req.raw)
