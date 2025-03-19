@@ -16,7 +16,7 @@
   ],
   "access": "public",
   "bin": {
-    "mcp-server-cloudflare": "dist/index.js"
+    "mcp-server-cloudflare": "dist/cli.js"
   },
   "scripts": {
     "build": "tsup src/index.ts --dts --format esm --external xdg-app-paths --external which",
