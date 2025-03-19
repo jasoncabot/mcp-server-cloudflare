@@ -1,25 +1,24 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
-import { log } from './utils/helpers'
-import { R2_HANDLERS, R2_TOOLS } from './tools/r2'
-import { D1_HANDLERS, D1_TOOLS } from './tools/d1'
-import { KV_HANDLERS, KV_TOOLS } from './tools/kv'
-import { ANALYTICS_HANDLERS, ANALYTICS_TOOLS } from './tools/analytics'
-import { WORKER_TOOLS, WORKERS_HANDLERS } from './tools/workers'
-import { DURABLE_OBJECTS_HANDLERS, DURABLE_OBJECTS_TOOLS } from './tools/durable-objects'
-import { QUEUES_HANDLERS, QUEUES_TOOLS } from './tools/queues'
-import { WORKERS_AI_HANDLERS, WORKERS_AI_TOOLS } from './tools/workers-ai'
-import { WORKFLOWS_HANDLERS, WORKFLOWS_TOOLS } from './tools/workflows'
-import { TEMPLATES_HANDLERS, TEMPLATES_TOOLS } from './tools/templates'
-import { WFP_HANDLERS, WFP_TOOLS } from './tools/workers-for-platforms'
-import { BINDINGS_HANDLERS, BINDINGS_TOOLS } from './tools/bindings'
-import { ROUTING_HANDLERS, ROUTING_TOOLS } from './tools/routing'
-import { CRON_HANDLERS, CRON_TOOLS } from './tools/cron'
-import { ZONES_HANDLERS, ZONES_TOOLS } from './tools/zones'
-import { SECRETS_HANDLERS, SECRETS_TOOLS } from './tools/secrets'
-import { VERSIONS_HANDLERS, VERSIONS_TOOLS } from './tools/versions'
-import { WRANGLER_HANDLERS, WRANGLER_TOOLS } from './tools/wrangler'
+import { log } from '../utils/helpers'
+import { R2_HANDLERS, R2_TOOLS } from '../tools/r2'
+import { D1_HANDLERS, D1_TOOLS } from '../tools/d1'
+import { KV_HANDLERS, KV_TOOLS } from '../tools/kv'
+import { ANALYTICS_HANDLERS, ANALYTICS_TOOLS } from '../tools/analytics'
+import { WORKER_TOOLS, WORKERS_HANDLERS } from '../tools/workers'
+import { DURABLE_OBJECTS_HANDLERS, DURABLE_OBJECTS_TOOLS } from '../tools/durable-objects'
+import { QUEUES_HANDLERS, QUEUES_TOOLS } from '../tools/queues'
+import { WORKERS_AI_HANDLERS, WORKERS_AI_TOOLS } from '../tools/workers-ai'
+import { WORKFLOWS_HANDLERS, WORKFLOWS_TOOLS } from '../tools/workflows'
+import { TEMPLATES_HANDLERS, TEMPLATES_TOOLS } from '../tools/templates'
+import { WFP_HANDLERS, WFP_TOOLS } from '../tools/workers-for-platforms'
+import { BINDINGS_HANDLERS, BINDINGS_TOOLS } from '../tools/bindings'
+import { ROUTING_HANDLERS, ROUTING_TOOLS } from '../tools/routing'
+import { CRON_HANDLERS, CRON_TOOLS } from '../tools/cron'
+import { ZONES_HANDLERS, ZONES_TOOLS } from '../tools/zones'
+import { SECRETS_HANDLERS, SECRETS_TOOLS } from '../tools/secrets'
+import { VERSIONS_HANDLERS, VERSIONS_TOOLS } from '../tools/versions'
+import { WRANGLER_HANDLERS, WRANGLER_TOOLS } from '../tools/wrangler'
 
 // Types for Cloudflare responses
 
@@ -136,16 +135,4 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 })
 
-// Start server
-export async function main() {
-  log('Starting server...')
-  try {
-    const transport = new StdioServerTransport()
-    log('Created transport')
-    await server.connect(transport)
-    log('Server connected and running')
-  } catch (error) {
-    log('Fatal error:', error)
-    process.exit(1)
-  }
-}
+export default server

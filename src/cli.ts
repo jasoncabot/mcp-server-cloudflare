@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-import { init } from './init'
+import { init } from './cli/init'
 import { config, log } from './utils/helpers'
-import { main } from './main'
 import {
   getAuthTokens,
   isAccessTokenExpired,
@@ -9,6 +8,7 @@ import {
   refreshToken,
   ensureWranglerAuthentication,
 } from './utils/wrangler'
+import { main } from './cli/main'
 
 // Handle process events
 process.on('uncaughtException', (error) => {

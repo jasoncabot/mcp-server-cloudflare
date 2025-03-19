@@ -1,14 +1,20 @@
 // Shell out to `npx wrangler@latest whoami`
 import { exec } from 'child_process'
 import { promisify } from 'util'
-import { AccountInfo, ensureWranglerAuthentication, fetchInternal, FetchResult, isDirectory } from './utils/wrangler'
+import {
+  AccountInfo,
+  ensureWranglerAuthentication,
+  fetchInternal,
+  FetchResult,
+  isDirectory,
+} from '../utils/wrangler'
 import chalk from 'chalk'
 import os from 'node:os'
 import path from 'node:path'
 import fs from 'node:fs'
 import { fileURLToPath } from 'url'
-import { createDialog, endSection, logRaw, startSection, updateStatus } from './utils/c3'
-import { mcpCloudflareVersion } from './utils/helpers'
+import { createDialog, endSection, logRaw, startSection, updateStatus } from '../utils/c3'
+import { mcpCloudflareVersion } from '../utils/helpers'
 import which from 'which'
 
 const __filename = fileURLToPath(import.meta.url)
