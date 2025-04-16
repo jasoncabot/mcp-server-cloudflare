@@ -137,9 +137,6 @@ importers:
       '@cloudflare/vitest-pool-workers':
         specifier: 0.8.14
         version: 0.8.14(@cloudflare/workers-types@4.20250410.0)(@vitest/runner@3.0.9)(@vitest/snapshot@3.0.9)(vitest@3.0.9)
-      '@cloudflare/workers-types':
-        specifier: 4.20250410.0
-        version: 4.20250410.0
       '@types/node':
         specifier: 22.14.1
         version: 22.14.1
@@ -186,9 +183,6 @@ importers:
       '@cloudflare/vitest-pool-workers':
         specifier: 0.8.14
         version: 0.8.14(@cloudflare/workers-types@4.20250410.0)(@vitest/runner@3.0.9)(@vitest/snapshot@3.0.9)(vitest@3.0.9)
-      '@cloudflare/workers-types':
-        specifier: 4.20250410.0
-        version: 4.20250410.0
       '@types/jsonwebtoken':
         specifier: 9.0.9
         version: 9.0.9
@@ -274,9 +268,6 @@ importers:
       '@cloudflare/vitest-pool-workers':
         specifier: 0.8.14
         version: 0.8.14(@cloudflare/workers-types@4.20250410.0)(@vitest/runner@3.0.9)(@vitest/snapshot@3.0.9)(vitest@3.0.9)
-      '@cloudflare/workers-types':
-        specifier: 4.20250410.0
-        version: 4.20250410.0
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config

@@ -15,8 +15,7 @@
 		"moduleResolution": "bundler",
 		"types": [
 			"./worker-configuration.d.ts",
-			"@cloudflare/vitest-pool-workers",
-			"@cloudflare/workers-types/2023-07-01"
+			"@cloudflare/vitest-pool-workers"
 		],
 		"resolveJsonModule": true,
 		"allowJs": true,
