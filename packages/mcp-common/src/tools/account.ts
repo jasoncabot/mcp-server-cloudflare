@@ -7,8 +7,8 @@ import { type CloudflareMcpAgent } from '../types/cloudflare-mcp-agent'
 export function registerAccountTools(agent: CloudflareMcpAgent) {
 	// Tool to list all accounts
 	agent.server.tool(
-		'accounts_list',
-		'List all accounts in your Cloudflare account',
+		'accounts_list',`List all accounts in your Cloudflare account.
+If you have access to multiple accounts you MUST ask the user to select one.`,
 		{},
 		async () => {
 			try {
