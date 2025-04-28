@@ -10,9 +10,8 @@ import {
 import { registerAccountTools } from '@repo/mcp-common/src/tools/account'
 import { registerWorkersTools } from '@repo/mcp-common/src/tools/worker'
 
-import { registerLogsTools } from './tools/logs'
-
 import type { AccountSchema, UserSchema } from '@repo/mcp-common/src/cloudflare-oauth-handler'
+import { registerObservabilityTools } from './tools/observability'
 
 // Context from the auth process, encrypted & stored in the auth token
 // and provided to the DurableMCP as this.props
@@ -41,7 +40,8 @@ export class ObservabilityMCP extends McpAgent<Env, State, Props> {
 		registerWorkersTools(this)
 
 		// Register Cloudflare Workers logs tools
-		registerLogsTools(this)
+		registerObservabilityTools(this)
+		console.log('ObservabilityMCP initialized')
 	}
 
 	getActiveAccountId() {
@@ -61,6 +61,7 @@ export class ObservabilityMCP extends McpAgent<Env, State, Props> {
 				activeAccountId: accountId,
 			})
 		} catch (e) {
+			console.error('Failed to set active accountId', e)
 			return null
 		}
 	}

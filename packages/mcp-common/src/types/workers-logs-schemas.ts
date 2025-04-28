@@ -55,9 +55,20 @@ export const zFilterCombination = z.enum(['and', 'or', 'AND', 'OR'])
 export const zPrimitiveUnion = z.union([z.string(), z.number(), z.boolean()])
 
 export const zQueryFilter = z.object({
-	key: z.string(),
+	key: z.string().describe(`The key to filter on. The key must be a string.
+		It is strongly recommended you use either the key from a previous response or the keys endpoint to get the available keys for your query. Do not guess keys.
+The following keys are special and should be used if available because they are more efficient and guaranteed to be available:
+	* $metadata.service - the worker service name
+	* $metadata.message - The log message. Almost every log has a message.
+	* $metadata.error - The error message from the log if available
+
+Do not guess keys. Use the keys endpoint to get the available keys for your query.
+
+If you are already calling the keys endpoint you can just set the limit to be very high (1000+) and not set a filter here to return all keys.
+`),
 	operation: zQueryOperation,
-	value: zPrimitiveUnion.optional(),
+	value: zPrimitiveUnion.optional().describe(`The value to filter on. Do not guess.
+		Use the events of a previous query or the values endpoint to get the available values for your query.`),
 	type: z.enum(['string', 'number', 'boolean']),
 })
 
@@ -102,7 +113,7 @@ export const zQueryRunCalculationsV2 = z.array(
 			z.object({
 				time: z.string(),
 				data: z.array(
-					zAggregateResult.merge(z.object({ firstSeen: z.string(), lastSeen: z.string() }))
+					zAggregateResult
 				),
 			})
 		),
@@ -260,7 +271,7 @@ export const zQueryRunRequest = z.object({
 				order: z.enum(['asc', 'desc']).optional(),
 			})
 			.optional(),
-		limit: z.number().int().nonnegative().max(100).optional(),
+		limit: z.number().int().nonnegative().max(100).optional().describe('Use this limit when a group by is present. 10 is a sensible default'),
 		needle: zSearchNeedle.optional(),
 	}),
 	timeframe: z.object({
@@ -268,7 +279,7 @@ export const zQueryRunRequest = z.object({
 		from: z.number(),
 	}),
 	granularity: z.number().optional(),
-	limit: z.number().max(100).optional().default(50),
+	limit: z.number().max(100).optional().default(5).describe('Use this limit to limit the number of events returned when the view is events. 5 is a sensible default'),
 	view: zViews.optional().default('calculations'),
 	dry: z.boolean().optional().default(false),
 	offset: z.string().optional(),
@@ -279,7 +290,7 @@ export const zQueryRunRequest = z.object({
 /**
  * The response from the API
  */
-export type zReturnedQueryRunResult = z.infer<typeof zReturnedQueryRunResult>
+export type ReturnedQueryRunResult = z.infer<typeof zReturnedQueryRunResult>
 export const zReturnedQueryRunResult = z.object({
 	// run: zQueryRunRequest,
 	calculations: zQueryRunCalculationsV2.optional(),
@@ -295,15 +306,16 @@ export const zReturnedQueryRunResult = z.object({
 export const zKeysRequest = z.object({
 	timeframe: z
 		.object({
-			to: z.number(),
-			from: z.number(),
+			to: z.number().describe('End of the timeframe in epoch milliseconds'),
+			from: z.number().describe('Start of the timeframe in epoch milliseconds'),
 		})
 		.optional(),
 	datasets: z.array(z.string()).default([]),
 	filters: z.array(zQueryFilter).default([]),
 	limit: z.number().optional(),
 	needle: zSearchNeedle.optional(),
-	keyNeedle: zSearchNeedle.optional(),
+	keyNeedle: zSearchNeedle.optional().describe(`If the user makes a suggestion for a key, use this to narrow down the list of keys returned.
+		Make sure match case is fals to avoid case sensitivity issues.`),
 })
 
 /**
