@@ -730,7 +730,6 @@ footer {
 		padding: 1rem;
 		min-width: 0;
 		width: 100%;
-		overflow: hidden;
 	}
 
 	.container {
@@ -749,9 +748,9 @@ footer {
 		padding: 0.5rem;
 	}
 
-	.date-time-text {
+	/*.date-time-text {
 		display: none;
-	}
+	}*/
 
 	.calendar-trigger {
 		order: 1;
@@ -762,6 +761,10 @@ footer {
 		flex-direction: column;
 		gap: 0.75rem;
 		width: 100%;
+	}
+
+	.input-group.success {
+		margin-bottom: 125px;
 	}
 
 	input[type='email'] {
@@ -788,6 +791,8 @@ footer {
 
 	.demo-companies li {
 		font-size: 2rem;
+		margin-top: 8px;
+		margin-bottom: 8px;
 	}
 
 	.footer-left {
