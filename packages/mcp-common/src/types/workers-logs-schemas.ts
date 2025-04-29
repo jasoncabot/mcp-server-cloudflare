@@ -332,7 +332,7 @@ export const zQueryRunRequest = z.object({
 		needle: zSearchNeedle.optional(),
 	}),
 	timeframe: zTimeframe,
-	granularity: z.number().optional(),
+	granularity: z.number().optional().describe("This is only used when the view is calculations - by leaving it empty workers observability will detect the correct granularity"),
 	limit: z
 		.number()
 		.max(100)
