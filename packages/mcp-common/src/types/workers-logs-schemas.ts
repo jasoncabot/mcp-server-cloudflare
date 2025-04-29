@@ -95,7 +95,8 @@ export const zQueryFilter = z.object({
 	`)
 
 export const zQueryCalculation = z.object({
-	key: z.string().optional().describe(`The key to use for the calculation. This key must exist in the logs.
+	key: z.string().optional()
+		.describe(`The key to use for the calculation. This key must exist in the logs.
 Use the Keys endpoint to confirm that this key exists
 
 • DO NOT guess keys - always use verified keys from either:
@@ -316,10 +317,11 @@ export const zQueryRunRequest = z.object({
 		groupBys: z.array(zQueryGroupBy).optional().describe(`Only valid when doing a Calculation`),
 		orderBy: z
 			.object({
-				value: z.string().describe("This must be the alias of a calculation"),
+				value: z.string().describe('This must be the alias of a calculation'),
 				order: z.enum(['asc', 'desc']).optional(),
 			})
-			.optional().describe("Order By only workers when a group by is present"),
+			.optional()
+			.describe('Order By only workers when a group by is present'),
 		limit: z
 			.number()
 			.int()
@@ -332,7 +334,12 @@ export const zQueryRunRequest = z.object({
 		needle: zSearchNeedle.optional(),
 	}),
 	timeframe: zTimeframe,
-	granularity: z.number().optional().describe("This is only used when the view is calculations - by leaving it empty workers observability will detect the correct granularity"),
+	granularity: z
+		.number()
+		.optional()
+		.describe(
+			'This is only used when the view is calculations - by leaving it empty workers observability will detect the correct granularity'
+		),
 	limit: z
 		.number()
 		.max(100)

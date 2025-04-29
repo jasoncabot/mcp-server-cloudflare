@@ -60,7 +60,8 @@ export class ObservabilityMCP extends McpAgent<Env, State, Props> {
 				version: this.env.MCP_SERVER_VERSION,
 			},
 			sentry: initSentryWithUser(env, this.ctx, this.props.user.id),
-			options: { instructions: `# Cloudflare Workers Observability Tool
+			options: {
+				instructions: `# Cloudflare Workers Observability Tool
 
 This tool provides powerful capabilities to analyze and troubleshoot your Cloudflare Workers through logs and metrics. Here's how to use it effectively:
 
@@ -81,7 +82,8 @@ This tool provides powerful capabilities to analyze and troubleshoot your Cloudf
 - STOP when you've answered the user's specific question
 - STOP when the user hasn't requested additional exploration
 - Only continue if explicitly directed with "EXPLORE" or similar instruction
-` },
+`,
+			},
 		})
 
 		registerAccountTools(this)
