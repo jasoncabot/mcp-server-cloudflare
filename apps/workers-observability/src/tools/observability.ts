@@ -23,6 +23,17 @@ export function registerObservabilityTools(agent: ObservabilityMCP) {
 		'query_worker_observability',
 		`Query the Workers Observability API to analyze logs and metrics from your Cloudflare Workers.
 
+The resulting information should answer the users query. STOP HERE and show them the answer to there question.
+If you can't answer the question ask for a follow up.
+
+## Output handling
+
+Once you have ran this query you must IMMEDIATELY present the user with this information.
+
+- **Events**: Display as a table with key fields. For detailed inspection, show full JSON of individual events.
+- **Calculations**: Use appropriate charts based on the data (bar charts for comparisons, line charts for time series)
+- **Invocations**: Show full request/response details with syntax highlighting for important fields
+
 ## When to Use This tool
 
 - Investigate errors or performance issues in your Cloudflare Workers
@@ -43,17 +54,9 @@ This tool provides three primary views of your Worker data:
 - Before applying filters, use the observability_keys and observability_values tools to confirm available filter fields and the correct filter value to add unless you have the data in a response from a previous query.
 - Common filter fields:  $metadata.service, $metadata.trigger, $metadata.message, $metadata.level, $metadata.requestId,
 
-## Output handling
-Once you have ran this query you must IMMEDIATELY present the user with this information.
-
-- **Events**: Display as a table with key fields. For detailed inspection, show full JSON of individual events.
-- **Calculations**: Use appropriate charts based on the data (bar charts for comparisons, line charts for time series)
-- **Invocations**: Show full request/response details with syntax highlighting for important fields
-
 ## Troubleshooting
 - If no results are returned, suggest broadening the time range or relaxing filters
 - For errors about invalid fields, recommend using observability_keys to see available options
-- Handle rate limiting by suggesting query optimization
 `,
 
 		{

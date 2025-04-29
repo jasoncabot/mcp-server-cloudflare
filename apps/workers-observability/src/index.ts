@@ -60,6 +60,20 @@ export class ObservabilityMCP extends McpAgent<Env, State, Props> {
 				version: this.env.MCP_SERVER_VERSION,
 			},
 			sentry: initSentryWithUser(env, this.ctx, this.props.user.id),
+			options: { instructions: `# Cloudflare Workers Observability Tool
+
+This tool provides powerful capabilities to analyze and troubleshoot your Cloudflare Workers through logs and metrics. Here's how to use it effectively:
+
+## IMPORTANT: Query Discipline
+
+**STOP after the first successful query if it answers the user's question.** Do not run multiple queries unless absolutely necessary. The first query often contains the answer - review it thoroughly before running additional queries.
+
+### When to STOP Querying
+- STOP after presenting meaningful results from the first query
+- STOP when you've answered the user's specific question
+- STOP when the user hasn't requested additional exploration
+- Only continue if explicitly directed with "EXPLORE" or similar instruction
+` },
 		})
 
 		registerAccountTools(this)

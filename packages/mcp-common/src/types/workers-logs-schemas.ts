@@ -312,13 +312,13 @@ export const zQueryRunRequest = z.object({
 		filters: z.array(zQueryFilter).optional(),
 		filterCombination: zFilterCombination.optional(),
 		calculations: z.array(zQueryCalculation).optional(),
-		groupBys: z.array(zQueryGroupBy).optional(),
+		groupBys: z.array(zQueryGroupBy).optional().describe(`Only valid when doing a Calculation`),
 		orderBy: z
 			.object({
-				value: z.string(),
+				value: z.string().describe("This must be the alias of a calculation"),
 				order: z.enum(['asc', 'desc']).optional(),
 			})
-			.optional(),
+			.optional().describe("Order By only workers when a group by is present"),
 		limit: z
 			.number()
 			.int()
