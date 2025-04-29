@@ -1,5 +1,3 @@
-import { time } from 'console'
-
 import { fetchCloudflareApi } from '../cloudflare-api'
 import {
 	zKeysResponse,
