@@ -69,7 +69,6 @@ export class ObservabilityMCP extends McpAgent<Env, State, Props> {
 
 		// Register Cloudflare Workers logs tools
 		registerObservabilityTools(this)
-		console.log('ObservabilityMCP initialized')
 	}
 
 	async getActiveAccountId() {
