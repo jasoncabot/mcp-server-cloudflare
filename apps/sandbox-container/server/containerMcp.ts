@@ -1,25 +1,31 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
-import { z } from 'zod'
+
+import { CloudflareMCPServer } from '@repo/mcp-common/src/server'
 
 import { OPEN_CONTAINER_PORT } from '../shared/consts'
-import { ExecParams, FilePathParam, FilesWrite } from '../shared/schema'
+import { ExecParams, FilePathParam, FileWrite } from '../shared/schema'
 import { MAX_CONTAINERS, proxyFetch, startAndWaitForPort } from './containerHelpers'
 import { getContainerManager } from './containerManager'
 import { BASE_INSTRUCTIONS } from './prompts'
-import { fileToBase64 } from './utils'
+import { fileToBase64, stripProtocolFromFilePath } from './utils'
 
 import type { FileList } from '../shared/schema'
-import type { Env, Props } from '.'
+import type { Env } from './context'
+import type { Props } from '.'
 
-export class ContainerMcpAgent extends McpAgent<Env, Props> {
-	server = new McpServer(
-		{
-			name: 'Container MCP Agent',
-			version: '1.0.0',
-		},
-		{ instructions: BASE_INSTRUCTIONS }
-	)
+export class ContainerMcpAgent extends McpAgent<Env, {}, Props> {
+	_server: CloudflareMCPServer | undefined
+	set server(server: CloudflareMCPServer) {
+		this._server = server
+	}
+
+	get server(): CloudflareMCPServer {
+		if (!this._server) {
+			throw new Error('Tried to access server before it was initialized')
+		}
+
+		return this._server
+	}
 
 	constructor(
 		public ctx: DurableObjectState,
@@ -45,6 +51,17 @@ export class ContainerMcpAgent extends McpAgent<Env, Props> {
 	}
 
 	async init() {
+		this.props.user.id
+		this.server = new CloudflareMCPServer({
+			userId: this.props.user.id,
+			wae: this.env.MCP_METRICS,
+			serverInfo: {
+				name: this.env.MCP_SERVER_NAME,
+				version: this.env.MCP_SERVER_VERSION,
+			},
+			options: { instructions: BASE_INSTRUCTIONS },
+		})
+
 		this.server.tool(
 			'container_initialize',
 			'Start or reset the container',
@@ -77,59 +94,70 @@ export class ContainerMcpAgent extends McpAgent<Env, Props> {
 			'Delete file and its contents',
 			{ args: FilePathParam },
 			async ({ args }) => {
-				const deleted = await this.container_file_delete(args)
+				const path = await stripProtocolFromFilePath(args.path)
+				const deleted = await this.container_file_delete(path)
 				return {
 					content: [{ type: 'text', text: `File deleted: ${deleted}.` }],
 				}
 			}
 		)
 		this.server.tool(
-			'container_files_write',
-			'Write file contents',
-			{ args: FilesWrite },
+			'container_file_write',
+			'Create a new file with the provided contents, overwriting the file if it already exists',
+			{ args: FileWrite },
 			async ({ args }) => {
+				args.path = await stripProtocolFromFilePath(args.path)
 				return {
-					content: [{ type: 'text', text: await this.container_files_write(args) }],
+					content: [{ type: 'text', text: await this.container_file_write(args) }],
 				}
 			}
 		)
 		this.server.tool('container_files_list', 'List working directory file tree', {}, async ({}) => {
-			const files = await this.container_ls()
+			// This approach relies on resources, which aren't handled well by Claude right now. Until that's sorted, we can just use file read, since it lists all files in a directory if a directory is passed to it.
+			//const files = await this.container_ls()
 
-			// this is a bit of a hack around the poor handling of resources in claude desktop
-			const resources: {
-				type: 'resource'
-				resource: { uri: string; text: string; mimeType: string }
-			}[] = files.resources.map((r) => {
-				return {
-					type: 'resource',
-					resource: {
-						uri: r.uri,
-						text: r.uri,
-						mimeType: 'text/plain',
-					},
-				}
-			})
+			// const resources: {
+			// 	type: 'resource'
+			// 	resource: { uri: string; text: string; mimeType: string }
+			// }[] = files.resources.map((r) => {
+			// 	return {
+			// 		type: 'resource',
+			// 		resource: {
+			// 			uri: r.uri,
+			// 			text: r.uri,
+			// 			mimeType: 'text/plain',
+			// 		},
+			// 	}
+			// })
 
+			// return {
+			// 	content: resources,
+			// }
+
+			// Begin workaround using container read rather than ls:
+			const { blob, mimeType } = await this.container_file_read('.')
 			return {
-				content: resources,
+				content: [
+					{
+						type: 'resource',
+						resource: {
+							text: await blob.text(),
+							uri: `file://`,
+							mimeType: mimeType,
+						},
+					},
+				],
 			}
 		})
 		this.server.tool(
 			'container_file_read',
-			'Read a specific file',
-			{ path: z.string() },
-			async ({ path }) => {
-				// normalize
-				path = path.startsWith('file://') ? path.replace('file://', '') : path
-				let { blob, mimeType } = await this.container_files_read(path)
+			'Read a specific file or directory',
+			{ args: FilePathParam },
+			async ({ args }) => {
+				const path = await stripProtocolFromFilePath(args.path)
+				const { blob, mimeType } = await this.container_file_read(path)
 
-				if (mimeType && (mimeType.startsWith('text') || mimeType === 'inode/directory')) {
-					// this is because there isn't a "real" directory mime type, so we're reusing the "text/directory" mime type
-					// so claude doesn't give an error
-					mimeType = mimeType === 'inode/directory' ? 'text/directory' : mimeType
-
-					// maybe "inode/directory" should list out multiple files in the contents list?
+				if (mimeType && mimeType.startsWith('text')) {
 					return {
 						content: [
 							{
@@ -253,7 +281,7 @@ export class ContainerMcpAgent extends McpAgent<Env, Props> {
 		)
 		return res.ok
 	}
-	async container_files_read(
+	async container_file_read(
 		filePath: string
 	): Promise<{ blob: Blob; mimeType: string | undefined }> {
 		const res = await proxyFetch(
@@ -267,15 +295,11 @@ export class ContainerMcpAgent extends McpAgent<Env, Props> {
 		}
 		return {
 			blob: await res.blob(),
-			mimeType: res.headers.get('content-type') ?? undefined,
+			mimeType: res.headers.get('Content-Type') ?? undefined,
 		}
 	}
 
-	async container_files_write(file: FilesWrite): Promise<string> {
-		if (file.path.startsWith('file://')) {
-			// normalize just in case the LLM sends the full resource URI
-			file.path = file.path.replace('file://', '')
-		}
+	async container_file_write(file: FileWrite): Promise<string> {
 		const res = await proxyFetch(
 			this.env.ENVIRONMENT,
 			this.ctx.container,

@@ -7,14 +7,16 @@ export const ExecParams = z.object({
 	streamStderr: z.boolean().default(true),
 })
 
-export type FilesWrite = z.infer<typeof FilesWrite>
-export const FilesWrite = z.object({
+export type FileWrite = z.infer<typeof FileWrite>
+export const FileWrite = z.object({
 	path: z.string(),
 	text: z.string().describe('Full text content of the file you want to write.'),
 })
 
 export type FilePathParam = z.infer<typeof FilePathParam>
-export const FilePathParam = z.string()
+export const FilePathParam = z.object({
+	path: z.string(),
+})
 
 export type FileList = z.infer<typeof FileList>
 export const FileList = z.object({

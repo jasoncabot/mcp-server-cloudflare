@@ -1,22 +1,46 @@
 import { jsonSchemaToZod } from '@n8n/json-schema-to-zod'
 import { MCPClientManager } from 'agents/mcp/client'
-import { LanguageModelV1, streamText, tool, ToolSet } from 'ai'
+import { LanguageModelV1, streamText, StreamTextResult, tool, ToolCallPart, ToolSet } from 'ai'
+import { z } from 'zod'
 
 import type { JsonSchemaObject } from '@n8n/json-schema-to-zod'
 
-export async function runTask(model: LanguageModelV1, input: string) {
+export async function initializeClient(): Promise<MCPClientManager> {
 	const clientManager = new MCPClientManager('test-client', '0.0.0')
-	await clientManager.connect('http://localhost:8787/sse')
+	await clientManager.connect('http://localhost:8976/sse')
+	return clientManager
+}
 
+export async function runTask(
+	clientManager: MCPClientManager,
+	model: LanguageModelV1,
+	input: string
+): Promise<{
+	promptOutput: string
+	fullResult: StreamTextResult<ToolSet, never>
+	toolCalls: ToolCallPart[]
+}> {
 	const tools = clientManager.listTools()
 	const toolSet: ToolSet = tools.reduce((acc, v) => {
 		acc[v.name] = tool({
 			parameters: jsonSchemaToZod(v.inputSchema as JsonSchemaObject),
 			description: v.description,
 			execute: async (args, opts) => {
-				const res = await clientManager.callTool(v, args, { signal: opts.abortSignal })
-				console.log(res.toolResult)
-				return res.content
+				try {
+					const res = await clientManager.callTool(
+						{
+							...v,
+							arguments: { ...args },
+						},
+						z.any() as any,
+						{ signal: opts.abortSignal }
+					)
+					return res.content
+				} catch (e) {
+					console.log('Error calling tool')
+					console.log(e)
+					return e
+				}
 			},
 		})
 		return acc
@@ -37,6 +61,7 @@ export async function runTask(model: LanguageModelV1, input: string) {
 
 	// convert into an LLM readable result so our factuality checker can validate tool calls
 	let messagesWithTools = ''
+	let toolCalls: ToolCallPart[] = []
 	const messages = (await res.response).messages
 	for (const message of messages) {
 		console.log(message.content)
@@ -48,11 +73,12 @@ export async function runTask(model: LanguageModelV1, input: string) {
     <tool_name>${messagePart.toolName}</tool_name>
     <tool_arguments>${JSON.stringify(messagePart.args)}</tool_arguments>
 </message_content>`
+				toolCalls.push(messagePart)
 			} else if (messagePart.type === 'text') {
 				messagesWithTools += `<message_content type=${messagePart.type}>${messagePart.text}</message_content>`
 			}
 		}
 	}
 
-	return messagesWithTools
+	return { promptOutput: messagesWithTools, fullResult: res, toolCalls }
 }

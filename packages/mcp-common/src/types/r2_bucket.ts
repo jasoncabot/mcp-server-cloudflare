@@ -1,7 +1,9 @@
 /**
  * This file contains the validators for the r2 bucket tools.
  */
-import {
+import { z } from 'zod'
+
+import type {
 	CORSDeleteParams,
 	CORSUpdateParams,
 	EventNotificationDeleteParams,
@@ -9,28 +11,56 @@ import {
 	EventNotificationUpdateParams,
 	LockGetParams,
 	LockUpdateParams,
-	MetricListParams,
 	SippyGetParams,
 	SippyUpdateParams,
 } from 'cloudflare/resources/r2/buckets.mjs'
-import {
+import type {
 	CustomCreateParams,
 	CustomDeleteParams,
 	CustomListParams,
 	CustomUpdateParams,
 } from 'cloudflare/resources/r2/buckets/domains.mjs'
-import { Sippy, SippyDeleteParams } from 'cloudflare/resources/r2/buckets/sippy.mjs'
-import { CustomGetParams } from 'cloudflare/resources/zero-trust/devices/policies.mjs'
-import { BucketCreateParams, TemporaryCredentialCreateParams } from 'cloudflare/src/resources/r2.js'
-import { CORSGetParams } from 'cloudflare/src/resources/r2/buckets.js'
-import { CustomGetResponse } from 'cloudflare/src/resources/r2/buckets/domains.js'
-import { z } from 'zod'
-
-import type { ProviderParam } from 'cloudflare/resources/r2/buckets/sippy.mjs'
+import type {
+	ProviderParam,
+	Sippy,
+	SippyDeleteParams,
+} from 'cloudflare/resources/r2/buckets/sippy.mjs'
+import type { CustomGetParams } from 'cloudflare/resources/zero-trust/devices/policies.mjs'
+import type {
+	BucketCreateParams,
+	TemporaryCredentialCreateParams,
+} from 'cloudflare/src/resources/r2.js'
+import type { CORSGetParams } from 'cloudflare/src/resources/r2/buckets.js'
+import type { CustomGetResponse } from 'cloudflare/src/resources/r2/buckets/domains.js'
 
 export const BucketNameSchema: z.ZodType<BucketCreateParams['name']> = z
 	.string()
 	.describe('The name of the r2 bucket')
+
+export const BucketListCursorParam = z
+	.string()
+	.nullable()
+	.optional()
+	.describe(
+		'Query param: Pagination cursor received during the last List Buckets call. R2 buckets are paginated using cursors instead of page numbers.'
+	)
+export const BucketListDirectionParam = z
+	.enum(['asc', 'desc'])
+	.nullable()
+	.optional()
+	.describe('Direction to order buckets')
+export const BucketListNameContainsParam = z
+	.string()
+	.nullable()
+	.optional()
+	.describe(
+		'Bucket names to filter by. Only buckets with this phrase in their name will be returned.'
+	)
+export const BucketListStartAfterParam = z
+	.string()
+	.nullable()
+	.optional()
+	.describe('Bucket name to start searching after. Buckets are ordered lexicographically.')
 
 export const AllowedMethodsEnum: z.ZodType<CORSUpdateParams.Rule['allowed']['methods']> = z.array(
 	z.union([

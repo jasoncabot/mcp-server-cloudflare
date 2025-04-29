@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { handleWorkerScriptDownload, handleWorkersList } from '../api/workers'
 import { getCloudflareClient } from '../cloudflare-api'
-import { type CloudflareMcpAgent } from '../types/cloudflare-mcp-agent'
+import type { CloudflareMcpAgent } from '../types/cloudflare-mcp-agent'
 
 /**
  * Registers the workers tools with the MCP server
@@ -15,9 +15,8 @@ const workerNameParam = z.string().describe('The name of the worker script to re
 
 export function registerWorkersTools(agent: CloudflareMcpAgent) {
 	// Tool to list all workers
-	agent.server.tool('workers_list', `List all Workers in your Cloudflare account.
-		If the user is looking for a specific worker and it cannot be found in the response ask to clarify which worker they are looking for.`, {}, async () => {
-		const accountId = agent.getActiveAccountId()
+	agent.server.tool('workers_list', 'List all Workers in your Cloudflare account', async () => {
+		const accountId = await agent.getActiveAccountId()
 		if (!accountId) {
 			return {
 				content: [
@@ -58,12 +57,13 @@ export function registerWorkersTools(agent: CloudflareMcpAgent) {
 					},
 				],
 			}
-		} catch (error) {
+		} catch (e) {
+			agent.server.recordError(e)
 			return {
 				content: [
 					{
 						type: 'text',
-						text: `Error listing workers: ${error instanceof Error && error.message}`,
+						text: `Error listing workers: ${e instanceof Error && e.message}`,
 					},
 				],
 			}
@@ -76,7 +76,7 @@ export function registerWorkersTools(agent: CloudflareMcpAgent) {
 		'Get the source code of a Cloudflare Worker',
 		{ scriptName: workerNameParam },
 		async (params) => {
-			const accountId = agent.getActiveAccountId()
+			const accountId = await agent.getActiveAccountId()
 			if (!accountId) {
 				return {
 					content: [
@@ -102,12 +102,13 @@ export function registerWorkersTools(agent: CloudflareMcpAgent) {
 						},
 					],
 				}
-			} catch (error) {
+			} catch (e) {
+				agent.server.recordError(e)
 				return {
 					content: [
 						{
 							type: 'text',
-							text: `Error retrieving worker script: ${error instanceof Error && error.message}`,
+							text: `Error retrieving worker script: ${e instanceof Error && e.message}`,
 						},
 					],
 				}
