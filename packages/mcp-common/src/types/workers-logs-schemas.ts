@@ -138,9 +138,7 @@ export const zQueryRunCalculationsV2 = z.array(
 		series: z.array(
 			z.object({
 				time: z.string(),
-				data: z.array(
-					zAggregateResult
-				),
+				data: z.array(zAggregateResult),
 			})
 		),
 	})
@@ -153,12 +151,12 @@ export const zStatistics = z.object({
 })
 
 export const zTimeframe = z
-.object({
-  to: z.string(),
-  from: z.string(),
-})
-.describe(
-  `Timeframe for your query (ISO-8601 format).
+	.object({
+		to: z.string(),
+		from: z.string(),
+	})
+	.describe(
+		`Timeframe for your query (ISO-8601 format).
 
   • Current server time: ${new Date()}
   • Default: Last hour from current time
@@ -171,7 +169,7 @@ export const zTimeframe = z
 
   Note: Narrower timeframes provide faster responses and more specific results.
   Omit this parameter entirely to use the default (last hour).`
-)
+	)
 
 const zCloudflareMiniEventDetailsRequest = z.object({
 	url: z.string().optional(),
@@ -307,7 +305,10 @@ export const zQueryRunRequest = z.object({
 	// TODO: Fix these types
 	queryId: z.string(),
 	parameters: z.object({
-		datasets: z.array(z.string()).optional().describe('Leave this empty to use the default datasets'),
+		datasets: z
+			.array(z.string())
+			.optional()
+			.describe('Leave this empty to use the default datasets'),
 		filters: z.array(zQueryFilter).optional(),
 		filterCombination: zFilterCombination.optional(),
 		calculations: z.array(zQueryCalculation).optional(),
@@ -318,12 +319,27 @@ export const zQueryRunRequest = z.object({
 				order: z.enum(['asc', 'desc']).optional(),
 			})
 			.optional(),
-		limit: z.number().int().nonnegative().max(100).optional().describe('Use this limit when view is calculation and a group by is present. 10 is a sensible default'),
+		limit: z
+			.number()
+			.int()
+			.nonnegative()
+			.max(100)
+			.optional()
+			.describe(
+				'Use this limit when view is calculation and a group by is present. 10 is a sensible default'
+			),
 		needle: zSearchNeedle.optional(),
 	}),
 	timeframe: zTimeframe,
 	granularity: z.number().optional(),
-	limit: z.number().max(100).optional().default(5).describe('Use this limit to limit the number of events returned when the view is events. 5 is a sensible default'),
+	limit: z
+		.number()
+		.max(100)
+		.optional()
+		.default(5)
+		.describe(
+			'Use this limit to limit the number of events returned when the view is events. 5 is a sensible default'
+		),
 	view: zViews.optional().default('calculations').describe(`## Examples by View Type
 ### Events View
 - "Show me all errors for the worker api-proxy in the last 30 minutes"
@@ -341,9 +357,17 @@ export const zQueryRunRequest = z.object({
 TRACES AND PATTERNS ARE NOT CURRENTLY SUPPORTED
 		`),
 	dry: z.boolean().optional().default(true),
-	offset: z.string().optional().describe('The offset to use for pagination. Use the $metadata.id field to get the next offset.'),
+	offset: z
+		.string()
+		.optional()
+		.describe(
+			'The offset to use for pagination. Use the $metadata.id field to get the next offset.'
+		),
 	offsetBy: z.number().optional(),
-	offsetDirection: z.string().optional().describe('The direction to use for pagination. Use "next" or "prev".'),
+	offsetDirection: z
+		.string()
+		.optional()
+		.describe('The direction to use for pagination. Use "next" or "prev".'),
 })
 
 /**
@@ -364,11 +388,15 @@ export const zReturnedQueryRunResult = z.object({
  */
 export const zKeysRequest = z.object({
 	timeframe: zTimeframe,
-	datasets: z.array(z.string()).default([]).describe('Leave this empty to use the default datasets'),
+	datasets: z
+		.array(z.string())
+		.default([])
+		.describe('Leave this empty to use the default datasets'),
 	filters: z.array(zQueryFilter).default([]),
 	limit: z.number().optional(),
 	needle: zSearchNeedle.optional(),
-	keyNeedle: zSearchNeedle.optional().describe(`If the user makes a suggestion for a key, use this to narrow down the list of keys returned.
+	keyNeedle: zSearchNeedle.optional()
+		.describe(`If the user makes a suggestion for a key, use this to narrow down the list of keys returned.
 		Make sure match case is fals to avoid case sensitivity issues.`),
 })
 
@@ -391,7 +419,10 @@ export const zValuesRequest = z.object({
 	timeframe: zTimeframe,
 	key: z.string(),
 	type: z.enum(['string', 'boolean', 'number']),
-	datasets: z.array(z.string()).default([]).describe('Leave this empty to use the default datasets'),
+	datasets: z
+		.array(z.string())
+		.default([])
+		.describe('Leave this empty to use the default datasets'),
 	filters: z.array(zQueryFilter).default([]),
 	limit: z.number().default(50),
 	needle: zSearchNeedle.optional(),

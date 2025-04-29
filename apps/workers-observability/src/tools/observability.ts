@@ -1,5 +1,13 @@
-import { queryWorkersObservability, handleWorkerLogsKeys, handleWorkerLogsValues } from '@repo/mcp-common/src/api/workers-observability'
-import { zKeysRequest, zQueryRunRequest, zValuesRequest } from '@repo/mcp-common/src/types/workers-logs-schemas'
+import {
+	handleWorkerLogsKeys,
+	handleWorkerLogsValues,
+	queryWorkersObservability,
+} from '@repo/mcp-common/src/api/workers-observability'
+import {
+	zKeysRequest,
+	zQueryRunRequest,
+	zValuesRequest,
+} from '@repo/mcp-common/src/types/workers-logs-schemas'
 
 import type { ObservabilityMCP } from '../index'
 
@@ -88,49 +96,92 @@ Once you have ran this query you must IMMEDIATELY present the user with this inf
 		}
 	)
 
-	agent.server.tool('observability_keys', `
-Find keys in the workers observability Data. This tool should be used to ensure that the filters or calculations that you are adding to your query are valid.
-Filters can be added to this query but because it is faster to return lots of keys set a high limit and only add the filter $metadata.service to filter by worker name.
-		`, { keysQuery: zKeysRequest }, async ({ keysQuery }) => {
-		const accountId = await agent.getActiveAccountId()
-		if (!accountId) {
-			return {
-				content: [
-					{
-						type: 'text',
-						text: 'No currently active accountId. Try listing your accounts (accounts_list) and then setting an active account (set_active_account)',
-					},
-				],
-			}
-		}
-		try {
+	agent.server.tool(
+		'observability_keys',
+		`Find keys in the Workers Observability Data.
 
-			const result = await handleWorkerLogsKeys(agent.props.accessToken, accountId, keysQuery)
-			return {
-				content: [
-					{
-						type: 'text',
-						text: JSON.stringify(result),
-					},
-				],
-			}
-		} catch (error) {
-			return {
-				content: [
-					{
-						type: 'text',
-						text: JSON.stringify({
-							error: `Error retrieving worker telemetry keys: ${error instanceof Error && error.message}`,
-						}),
-					},
-				],
-			}
-		}
-	})
+## When to Use This Tool
+- Before creating new queries to discover available data fields
+- When building complex filters to verify field names exist
+- To explore the schema of your Workers data
+- When troubleshooting "invalid field" errors in queries
+- To discover metrics fields available for calculations
 
-	agent.server.tool('observability_values', `
-Find values in the workers observability Data. This tool should be used to ensure that the filters that you are adding to your query are valid.
+## Core Capabilities
+This tool provides a comprehensive view of available data fields:
+1. **Discover Schema** - Explore what fields exist in your Workers data
+2. **Validate Fields** - Confirm field names before using them in filters
+3. **Understand Data Types** - Learn the type of each field for proper filtering
+
+## Best Practices
+- Set a high limit (1000+) to ensure you see all available keys
+- Add the $metadata.service filter to narrow results to a specific Worker
+- Use this tool before a query with unfamiliar fields
+- Pay attention to field data types when crafting filters
+
+## Common Key Categories
+- $metadata.* fields: Core Worker metadata including service name, level, etc.
+- $workers.* fields: Worker-specific metadata like request ID, trigger type, etc.
+- custom fields: Any fields added via console.log in your Worker code
+
+## Troubleshooting
+- If expected fields are missing, verify the Worker is actively logging
+- For empty results, try broadening your time range
 `,
+		{ keysQuery: zKeysRequest },
+		async ({ keysQuery }) => {
+			const accountId = await agent.getActiveAccountId()
+			if (!accountId) {
+				return {
+					content: [
+						{
+							type: 'text',
+							text: 'No currently active accountId. Try listing your accounts (accounts_list) and then setting an active account (set_active_account)',
+						},
+					],
+				}
+			}
+			try {
+				const result = await handleWorkerLogsKeys(agent.props.accessToken, accountId, keysQuery)
+				return {
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify(result),
+						},
+					],
+				}
+			} catch (error) {
+				return {
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify({
+								error: `Error retrieving worker telemetry keys: ${error instanceof Error && error.message}`,
+							}),
+						},
+					],
+				}
+			}
+		}
+	)
+
+	agent.server.tool(
+		'observability_values',
+		`Find values in the Workers Observability Data.
+
+## When to Use This Tool
+- When building complex queries requiring exact value matches
+
+## Best Practices
+- Always specify the correct data type (string, number, boolean)
+- Use needle parameter with matchCase:false for case-insensitive searches
+- Combine with filters to focus on specific Workers or time periods
+- When dealing with high-cardinality fields, use more specific filters
+
+## Troubleshooting
+- For no results, verify the field exists using observability_keys first
+- If expected values are missing, try broadening your time range`,
 		{ valuesQuery: zValuesRequest },
 		async ({ valuesQuery }) => {
 			const accountId = await agent.getActiveAccountId()
@@ -166,5 +217,6 @@ Find values in the workers observability Data. This tool should be used to ensur
 					],
 				}
 			}
-		})
+		}
+	)
 }
