@@ -1,11 +1,24 @@
+import { time } from 'console'
+
 import { fetchCloudflareApi } from '../cloudflare-api'
-import { zKeysResponse, zReturnedQueryRunResult, zValuesResponse } from '../types/workers-logs-schemas'
+import {
+	zKeysResponse,
+	zReturnedQueryRunResult,
+	zValuesResponse,
+} from '../types/workers-logs-schemas'
 import { V4Schema } from '../v4-api'
 
 import type { z } from 'zod'
 import type { zKeysRequest, zQueryRunRequest, zValuesRequest } from '../types/workers-logs-schemas'
 
 type QueryRunRequest = z.infer<typeof zQueryRunRequest>
+
+function fixTimeframe(timeframe: QueryRunRequest['timeframe']) {
+	return {
+		from: new Date(timeframe.from).getTime(),
+		to: new Date(timeframe.to).getTime(),
+	}
+}
 
 export async function queryWorkersObservability(
 	apiToken: string,
@@ -22,7 +35,7 @@ export async function queryWorkersObservability(
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify(query),
+			body: JSON.stringify({ ...query, timeframe: fixTimeframe(query.timeframe) }),
 		},
 	})
 
@@ -45,7 +58,7 @@ export async function handleWorkerLogsKeys(
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify(keysQuery),
+			body: JSON.stringify({ ...keysQuery, timeframe: fixTimeframe(keysQuery.timeframe) }),
 		},
 	})
 
@@ -67,7 +80,7 @@ export async function handleWorkerLogsValues(
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify(valuesQuery),
+			body: JSON.stringify({ ...valuesQuery, timeframe: fixTimeframe(valuesQuery.timeframe) }),
 		},
 	})
 
