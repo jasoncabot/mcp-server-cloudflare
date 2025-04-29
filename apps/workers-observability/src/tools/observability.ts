@@ -54,6 +54,9 @@ This tool provides three primary views of your Worker data:
 - Before applying filters, use the observability_keys and observability_values tools to confirm available filter fields and the correct filter value to add unless you have the data in a response from a previous query.
 - Common filter fields:  $metadata.service, $metadata.trigger, $metadata.message, $metadata.level, $metadata.requestId,
 
+## Calculation Best Practices
+- Before applying calculations, use the observability_keys tools to confirm key that should be used for the calculation
+
 ## Troubleshooting
 - If no results are returned, suggest broadening the time range or relaxing filters
 - For errors about invalid fields, recommend using observability_keys to see available options

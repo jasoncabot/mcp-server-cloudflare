@@ -59,7 +59,7 @@ export const zQueryFilter = z.object({
 
     • DO NOT guess keys - always use verified keys from either:
       - Previous query results
-      - The '/keys' endpoint response
+      - The observability_keys response
 
     • PREFERRED KEYS (faster & always available):
       - $metadata.service: Worker service name
@@ -67,10 +67,6 @@ export const zQueryFilter = z.object({
 			- $metadata.trigger: Trigger type (e.g., GET /users, POST /orders, etc.)
       - $metadata.message: Log message text (present in nearly all logs)
       - $metadata.error: Error message (when applicable)
-
-    • ADVANCED USAGE:
-      When using the '/keys' endpoint, set limit=1000+ to retrieve comprehensive key options
-      without needing additional filtering
 `),
 	operation: zQueryOperation,
 	value: zPrimitiveUnion.optional().describe(`Filter comparison value. IMPORTANT:
@@ -99,7 +95,12 @@ export const zQueryFilter = z.object({
 	`)
 
 export const zQueryCalculation = z.object({
-	key: z.string().optional(),
+	key: z.string().optional().describe(`The key to use for the calculation. This key must exist in the logs.
+Use the Keys endpoint to confirm that this key exists
+
+• DO NOT guess keys - always use verified keys from either:
+- Previous query results
+- The observability_keys response`),
 	keyType: z.enum(['string', 'number', 'boolean']).optional(),
 	operator: zQueryOperator,
 	alias: z.string().optional(),
@@ -393,7 +394,9 @@ export const zKeysRequest = z.object({
 		.default([])
 		.describe('Leave this empty to use the default datasets'),
 	filters: z.array(zQueryFilter).default([]),
-	limit: z.number().optional(),
+	limit: z.number().optional().describe(`
+    • ADVANCED USAGE:
+      set limit=1000+ to retrieve comprehensive key options without needing additional filtering`),
 	needle: zSearchNeedle.optional(),
 	keyNeedle: zSearchNeedle.optional()
 		.describe(`If the user makes a suggestion for a key, use this to narrow down the list of keys returned.
