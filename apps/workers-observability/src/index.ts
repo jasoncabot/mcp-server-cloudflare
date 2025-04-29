@@ -68,6 +68,14 @@ This tool provides powerful capabilities to analyze and troubleshoot your Cloudf
 
 **STOP after the first successful query if it answers the user's question.** Do not run multiple queries unless absolutely necessary. The first query often contains the answer - review it thoroughly before running additional queries.
 
+## Best Practices
+
+### Efficient Querying
+- Start with a focused query that's most likely to answer the question
+- Review results completely before deciding if additional queries are needed
+- If the first query provides the answer, STOP and present it to the user
+- Only run additional queries when specifically directed or when essential information is missing
+
 ### When to STOP Querying
 - STOP after presenting meaningful results from the first query
 - STOP when you've answered the user's specific question
