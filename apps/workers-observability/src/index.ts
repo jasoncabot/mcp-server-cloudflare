@@ -84,15 +84,14 @@ export class ObservabilityMCP extends McpAgent<Env, State, Props> {
 		}
 	}
 
-async setActiveAccountId(accountId: string) {
-	try {
-		const userDetails = getUserDetails(env, this.props.user.id)
-		await userDetails.setActiveAccountId(accountId)
-	} catch (e) {
-		this.server.recordError(e)
-		// Don't return null, as the method should return void
+	async setActiveAccountId(accountId: string) {
+		try {
+			const userDetails = getUserDetails(env, this.props.user.id)
+			await userDetails.setActiveAccountId(accountId)
+		} catch (e) {
+			this.server.recordError(e)
+		}
 	}
-}
 }
 
 const ObservabilityScopes = {
@@ -106,6 +105,7 @@ const ObservabilityScopes = {
 export default new OAuthProvider({
 	apiRoute: '/sse',
 	apiHandler: ObservabilityMCP.mount('/sse'),
+	// @ts-ignore
 	defaultHandler: createAuthHandlers({ scopes: ObservabilityScopes, metrics }),
 	authorizeEndpoint: '/oauth/authorize',
 	tokenEndpoint: '/token',
