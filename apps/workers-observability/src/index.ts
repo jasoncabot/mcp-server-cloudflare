@@ -62,27 +62,13 @@ export class ObservabilityMCP extends McpAgent<Env, State, Props> {
 			sentry: initSentryWithUser(env, this.ctx, this.props.user.id),
 			options: {
 				instructions: `# Cloudflare Workers Observability Tool
+				* A cloudflare worker is a serverless function
+				* Workers Observability is the tool to inspect the logs for your cloudflare Worker
+				* Each log is a structured JSON payload with keys and values
 
-This tool provides powerful capabilities to analyze and troubleshoot your Cloudflare Workers through logs and metrics. Here's how to use it effectively:
 
-## IMPORTANT: Query Discipline
-
-**STOP after the first successful query if it answers the user's question.** Do not run multiple queries unless absolutely necessary. The first query often contains the answer - review it thoroughly before running additional queries.
-
-## Best Practices
-
-### Efficient Querying
-- Start with a focused query that's most likely to answer the question
-- Review results completely before deciding if additional queries are needed
-- If the first query provides the answer, STOP and present it to the user
-- Only run additional queries when specifically directed or when essential information is missing
-
-### When to STOP Querying
-- STOP after presenting meaningful results from the first query
-- STOP when you've answered the user's specific question
-- STOP when the user hasn't requested additional exploration
-- Only continue if explicitly directed with "EXPLORE" or similar instruction
-`,
+				This server allows you to analyze your Cloudflare Workers logs and metrics.
+				`,
 			},
 		})
 
@@ -124,17 +110,30 @@ const ObservabilityScopes = {
 		'See and change Cloudflare Workers data such as zones, KV storage, namespaces, scripts, and routes.',
 	'workers_observability:read': 'See observability logs for your account',
 } as const
-
-export default new OAuthProvider({
-	apiRoute: '/sse',
-	apiHandler: ObservabilityMCP.mount('/sse'),
-	// @ts-ignore
-	defaultHandler: createAuthHandlers({ scopes: ObservabilityScopes, metrics }),
-	authorizeEndpoint: '/oauth/authorize',
-	tokenEndpoint: '/token',
-	tokenExchangeCallback: (options) =>
-		handleTokenExchangeCallback(options, env.CLOUDFLARE_CLIENT_ID, env.CLOUDFLARE_CLIENT_SECRET),
-	// Cloudflare access token TTL
-	accessTokenTTL: 3600,
-	clientRegistrationEndpoint: '/register',
-})
+export default {
+	fetch(r:Request,e:Env,c: ExecutionContext) {
+		c.props = {
+			accessToken: env.ACCESS_TOKEN,
+			user: {
+				id: '1234',
+			},
+			account: {
+				id: '2'
+			}
+		}
+		return ObservabilityMCP.mount('/sse').fetch(r,e,c)
+	}
+}
+// export default new OAuthProvider({
+// 	apiRoute: '/sse',
+// 	apiHandler: ObservabilityMCP.mount('/sse'),
+// 	// @ts-ignore
+// 	defaultHandler: createAuthHandlers({ scopes: ObservabilityScopes, metrics }),
+// 	authorizeEndpoint: '/oauth/authorize',
+// 	tokenEndpoint: '/token',
+// 	tokenExchangeCallback: (options) =>
+// 		handleTokenExchangeCallback(options, env.CLOUDFLARE_CLIENT_ID, env.CLOUDFLARE_CLIENT_SECRET),
+// 	// Cloudflare access token TTL
+// 	accessTokenTTL: 3600,
+// 	clientRegistrationEndpoint: '/register',
+// })
