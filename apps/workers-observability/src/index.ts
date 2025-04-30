@@ -5,6 +5,7 @@ import {
 	createAuthHandlers,
 	handleTokenExchangeCallback,
 } from '@repo/mcp-common/src/cloudflare-oauth-handler'
+import { handleDevMode } from '@repo/mcp-common/src/dev-mode'
 import { getUserDetails, UserDetails } from '@repo/mcp-common/src/durable-objects/user_details'
 import { getEnv } from '@repo/mcp-common/src/env'
 import { RequiredScopes } from '@repo/mcp-common/src/scopes'
@@ -16,7 +17,7 @@ import { registerWorkersTools } from '@repo/mcp-common/src/tools/worker'
 import { MetricsTracker } from '../../../packages/mcp-observability/src'
 import { registerObservabilityTools } from './tools/observability'
 
-import type { AccountSchema, UserSchema } from '@repo/mcp-common/src/cloudflare-oauth-handler'
+import type { AuthProps } from '@repo/mcp-common/src/cloudflare-oauth-handler'
 import type { Env } from './context'
 
 export { UserDetails }
@@ -30,13 +31,9 @@ const metrics = new MetricsTracker(env.MCP_METRICS, {
 
 // Context from the auth process, encrypted & stored in the auth token
 // and provided to the DurableMCP as this.props
-export type Props = {
-	accessToken: string
-	user: UserSchema['result']
-	accounts: AccountSchema['result']
-}
+type Props = AuthProps
 
-export type State = { activeAccountId: string | null }
+type State = { activeAccountId: string | null }
 
 export class ObservabilityMCP extends McpAgent<Env, State, Props> {
 	_server: CloudflareMCPServer | undefined
@@ -111,16 +108,30 @@ const ObservabilityScopes = {
 	'workers_observability:read': 'See observability logs for your account',
 } as const
 
-export default new OAuthProvider({
-	apiRoute: '/sse',
-	apiHandler: ObservabilityMCP.mount('/sse'),
-	// @ts-ignore
-	defaultHandler: createAuthHandlers({ scopes: ObservabilityScopes, metrics }),
-	authorizeEndpoint: '/oauth/authorize',
-	tokenEndpoint: '/token',
-	tokenExchangeCallback: (options) =>
-		handleTokenExchangeCallback(options, env.CLOUDFLARE_CLIENT_ID, env.CLOUDFLARE_CLIENT_SECRET),
-	// Cloudflare access token TTL
-	accessTokenTTL: 3600,
-	clientRegistrationEndpoint: '/register',
-})
+export default {
+	fetch: async (req: Request, env: Env, ctx: ExecutionContext) => {
+		if (env.ENVIRONMENT === 'development' && env.DEV_DISABLE_OAUTH === 'true') {
+			return await handleDevMode(ObservabilityMCP, req, env, ctx)
+		}
+
+		return new OAuthProvider({
+			apiHandlers: {
+				'/mcp': ObservabilityMCP.serve('/mcp'),
+				'/sse': ObservabilityMCP.serveSSE('/sse'),
+			},
+			// @ts-ignore
+			defaultHandler: createAuthHandlers({ scopes: ObservabilityScopes, metrics }),
+			authorizeEndpoint: '/oauth/authorize',
+			tokenEndpoint: '/token',
+			tokenExchangeCallback: (options) =>
+				handleTokenExchangeCallback(
+					options,
+					env.CLOUDFLARE_CLIENT_ID,
+					env.CLOUDFLARE_CLIENT_SECRET
+				),
+			// Cloudflare access token TTL
+			accessTokenTTL: 3600,
+			clientRegistrationEndpoint: '/register',
+		}).fetch(req, env, ctx)
+	},
+}

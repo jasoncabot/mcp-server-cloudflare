@@ -3,6 +3,7 @@ import { McpAgent } from 'agents/mcp'
 
 import {
 	createAuthHandlers,
+	getUserAndAccounts,
 	handleTokenExchangeCallback,
 } from '@repo/mcp-common/src/cloudflare-oauth-handler'
 import { getUserDetails, UserDetails } from '@repo/mcp-common/src/durable-objects/user_details'
@@ -16,7 +17,7 @@ import { registerR2BucketTools } from '@repo/mcp-common/src/tools/r2_bucket'
 import { registerWorkersTools } from '@repo/mcp-common/src/tools/worker'
 import { MetricsTracker } from '@repo/mcp-observability'
 
-import type { AccountSchema, UserSchema } from '@repo/mcp-common/src/cloudflare-oauth-handler'
+import type { AuthProps } from '@repo/mcp-common/src/cloudflare-oauth-handler'
 import type { Env } from './context'
 
 export { UserDetails }
@@ -32,11 +33,7 @@ export type WorkersBindingsMCPState = { activeAccountId: string | null }
 
 // Context from the auth process, encrypted & stored in the auth token
 // and provided to the DurableMCP as this.props
-export type Props = {
-	accessToken: string
-	user: UserSchema['result']
-	accounts: AccountSchema['result']
-}
+type Props = AuthProps
 
 export class WorkersBindingsMCP extends McpAgent<Env, WorkersBindingsMCPState, Props> {
 	_server: CloudflareMCPServer | undefined
@@ -107,17 +104,44 @@ const BindingsScopes = {
 	'd1:write': 'Create, read, and write to D1 databases',
 } as const
 
-// Export the OAuth handler as the default
-export default new OAuthProvider({
-	apiRoute: '/sse',
-	apiHandler: WorkersBindingsMCP.mount('/sse'),
-	// @ts-ignore
-	defaultHandler: createAuthHandlers({ scopes: BindingsScopes, metrics }),
-	authorizeEndpoint: '/oauth/authorize',
-	tokenEndpoint: '/token',
-	tokenExchangeCallback: (options) =>
-		handleTokenExchangeCallback(options, env.CLOUDFLARE_CLIENT_ID, env.CLOUDFLARE_CLIENT_SECRET),
-	// Cloudflare access token TTL
-	accessTokenTTL: 3600,
-	clientRegistrationEndpoint: '/register',
-})
+// TODO: Move this in to mcp-common
+async function handleDevMode(req: Request, env: Env, ctx: ExecutionContext) {
+	const { user, accounts } = await getUserAndAccounts(env.DEV_CLOUDFLARE_API_TOKEN, {
+		'X-Auth-Email': env.DEV_CLOUDFLARE_EMAIL,
+		'X-Auth-Key': env.DEV_CLOUDFLARE_API_TOKEN,
+	})
+	ctx.props = {
+		accessToken: env.DEV_CLOUDFLARE_API_TOKEN,
+		user,
+		accounts,
+	} as Props
+	return WorkersBindingsMCP.mount('/sse').fetch(req, env, ctx)
+}
+
+export default {
+	fetch: async (req: Request, env: Env, ctx: ExecutionContext) => {
+		if (env.ENVIRONMENT === 'development' && env.DEV_DISABLE_OAUTH === 'true') {
+			return await handleDevMode(req, env, ctx)
+		}
+
+		return new OAuthProvider({
+			apiHandlers: {
+				'/mcp': WorkersBindingsMCP.serve('/mcp'),
+				'/sse': WorkersBindingsMCP.serveSSE('/sse'),
+			},
+			// @ts-ignore
+			defaultHandler: createAuthHandlers({ scopes: BindingsScopes, metrics }),
+			authorizeEndpoint: '/oauth/authorize',
+			tokenEndpoint: '/token',
+			tokenExchangeCallback: (options) =>
+				handleTokenExchangeCallback(
+					options,
+					env.CLOUDFLARE_CLIENT_ID,
+					env.CLOUDFLARE_CLIENT_SECRET
+				),
+			// Cloudflare access token TTL
+			accessTokenTTL: 3600,
+			clientRegistrationEndpoint: '/register',
+		}).fetch(req, env, ctx)
+	},
+}
