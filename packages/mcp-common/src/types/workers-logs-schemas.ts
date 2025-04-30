@@ -117,8 +117,7 @@ export const zSearchNeedle = z.object({
 	matchCase: z.boolean().optional(),
 })
 
-const zViews = z
-	.enum(['events', 'calculations', 'invocations'])
+const zViews = z.enum(['events', 'calculations', 'invocations'])
 
 export const zAggregateResult = z.object({
 	groups: z.array(z.object({ key: z.string(), value: zPrimitiveUnion })).optional(),
