@@ -308,7 +308,6 @@ export const zQueryRunRequest = z.object({
 	view: zViews.optional().default('calculations').describe(`## Examples by View Type
 		### Events View
 		- "Show me all errors for the worker api-proxy in the last 30 minutes"
-		- "List successful requests for the image-resizer worker with status code 200"
 		- "Show events from worker auth-service where the path contains /login"
 
 		### Calculation View
@@ -317,7 +316,7 @@ export const zQueryRunRequest = z.object({
 
 		### Invocation View
 		- "Find a request to worker api-proxy that resulted in a 500 error"
-		- "Find the slowest request to worker image-processor in the last hour"
+		- "List successful requests for the image-resizer worker with status code 200"
 				`),
 	parameters: z.object({
 		datasets: z
