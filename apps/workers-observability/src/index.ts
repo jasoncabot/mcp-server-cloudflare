@@ -110,30 +110,17 @@ const ObservabilityScopes = {
 		'See and change Cloudflare Workers data such as zones, KV storage, namespaces, scripts, and routes.',
 	'workers_observability:read': 'See observability logs for your account',
 } as const
-export default {
-	fetch(r:Request,e:Env,c: ExecutionContext) {
-		c.props = {
-			accessToken: env.ACCESS_TOKEN,
-			user: {
-				id: '1234',
-			},
-			account: {
-				id: '2'
-			}
-		}
-		return ObservabilityMCP.mount('/sse').fetch(r,e,c)
-	}
-}
-// export default new OAuthProvider({
-// 	apiRoute: '/sse',
-// 	apiHandler: ObservabilityMCP.mount('/sse'),
-// 	// @ts-ignore
-// 	defaultHandler: createAuthHandlers({ scopes: ObservabilityScopes, metrics }),
-// 	authorizeEndpoint: '/oauth/authorize',
-// 	tokenEndpoint: '/token',
-// 	tokenExchangeCallback: (options) =>
-// 		handleTokenExchangeCallback(options, env.CLOUDFLARE_CLIENT_ID, env.CLOUDFLARE_CLIENT_SECRET),
-// 	// Cloudflare access token TTL
-// 	accessTokenTTL: 3600,
-// 	clientRegistrationEndpoint: '/register',
-// })
+
+export default new OAuthProvider({
+	apiRoute: '/sse',
+	apiHandler: ObservabilityMCP.mount('/sse'),
+	// @ts-ignore
+	defaultHandler: createAuthHandlers({ scopes: ObservabilityScopes, metrics }),
+	authorizeEndpoint: '/oauth/authorize',
+	tokenEndpoint: '/token',
+	tokenExchangeCallback: (options) =>
+		handleTokenExchangeCallback(options, env.CLOUDFLARE_CLIENT_ID, env.CLOUDFLARE_CLIENT_SECRET),
+	// Cloudflare access token TTL
+	accessTokenTTL: 3600,
+	clientRegistrationEndpoint: '/register',
+})
